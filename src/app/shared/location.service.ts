@@ -10,6 +10,8 @@ export class LocationService {
     constructor(){}
 
     getLocation():Observable<google.maps.LatLng> {
+
+        // Uses browsers geolocater to find users location
         return Observable.create(observer => {
             if (window.navigator && window.navigator.geolocation) {
                 window.navigator.geolocation.getCurrentPosition((position) => {

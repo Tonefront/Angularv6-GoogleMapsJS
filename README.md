@@ -10,6 +10,6 @@ Run `npm install` in source code folder.
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files. 
+Run `ng serve` and then navigate to `http://localhost:4200/` or `ng serve --open` for a dev server. The app will automatically reload if you change any of the source files. 
 
 

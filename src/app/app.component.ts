@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { } from '@types/googlemaps';
  
 import { LocationService } from './shared/location.service';
+import { markParentViewsForCheck } from '@angular/core/src/view/util';
 
 @Component({
   selector: 'app-root',
@@ -15,12 +16,11 @@ export class AppComponent implements OnInit{
   private markers = [];
   private map: google.maps.Map;
   private position: google.maps.LatLng;
+  private userMarker: google.maps.Marker;
   private service: google.maps.places.PlacesService;
 
   private htmlNewSearch = `
   <button title="New search for gas stations">New Search</button>`;
-  private htmlRange = `
-  <button value="Radius" title="Increase radius (at max resets to min)">Radius</button>`;
 
   @ViewChild("gmap")
   public gmapElementRef: ElementRef;
@@ -37,8 +37,10 @@ export class AppComponent implements OnInit{
 
   private generateMap(){
 
+    // Watches until coordinates are given to locates user
     this.location.getLocation().subscribe(observer => {
 
+      // Then contructs map, search, and markers
       this.position = observer;
 
       this.map = new google.maps.Map(this.gmapElementRef.nativeElement, {
@@ -46,17 +48,21 @@ export class AppComponent implements OnInit{
         zoom: 13
       });
 
+      // Add on-click controls to button
       let search = this.getHTMLNode(this.htmlNewSearch);
 
       search.addEventListener('click', () => {
         this.newSearch()
       });
 
+      // embed button into map
       this.map.controls[google.maps.ControlPosition.TOP_CENTER].push(search);
 
-      let marker = new google.maps.Marker({
+      // Mark users position
+      let userMarker = new google.maps.Marker({
         position: this.position,
-        map: this.map
+        map: this.map,
+        title: "You are here"
       });
 
       this.service = new google.maps.places.PlacesService(this.map);
@@ -69,6 +75,7 @@ export class AppComponent implements OnInit{
 
   private getHTMLNode(htmlString: string): Node {
 
+    // Takes a string and turns into a HTML Element
     let template = document.createElement('template');
     htmlString = htmlString.trim(); 
     template.innerHTML = htmlString;
@@ -78,16 +85,26 @@ export class AppComponent implements OnInit{
 
   private newSearch() {
     
+    // Re-finds users location
     this.location.getLocation().subscribe(observer => {
       this.position = observer;
     });
 
     this.map.setCenter(this.position);
 
+    // Remove all markers
+    this.userMarker.setMap(null);
+
     this.markers.forEach(function(marker) {
       marker.setMap(null);
     });
     this.markers = [];
+
+    this.userMarker = new google.maps.Marker({
+      position: this.position,
+      map: this.map,
+      title: "You are here"
+    });
 
     this.searchArea();
 
@@ -95,6 +112,8 @@ export class AppComponent implements OnInit{
 
   private searchArea(){
     
+    // Search provided by google maps docs 
+    //https://developers.google.com/maps/documentation/javascript/places#TextSearchRequests 
     this.service.textSearch({
       location: this.position,
       radius: 500,
